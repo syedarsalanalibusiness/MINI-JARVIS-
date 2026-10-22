@@ -56,7 +56,9 @@ async def _answer_with_ai(message: str, language: str, context: str = "") -> str
                     "max_tokens": 500,
                     "temperature": 0.3,
                 },
-                timeout=90.0,
+                # The free model may need several minutes to wake from scale-to-zero.
+                # Its documented cold-start limit is 360 seconds.
+                timeout=420.0,
                 trust_env=False,
             )
             if response.status_code == 429:
@@ -69,6 +71,12 @@ async def _answer_with_ai(message: str, language: str, context: str = "") -> str
             raise
         except httpx.TimeoutException as exc:
             raise AIServiceError("The online AI service took too long to respond. Please try again.") from exc
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 503:
+                raise AIServiceError(
+                    "The free online AI model is starting or busy. Please wait a few minutes and try again."
+                ) from exc
+            raise AIServiceError("The online AI service could not complete the request. Please retry shortly.") from exc
         except httpx.HTTPError as exc:
             raise AIServiceError("The online AI service could not complete the request. Please retry shortly.") from exc
         except (ValueError, TypeError, IndexError) as exc:
@@ -77,7 +85,7 @@ async def _answer_with_ai(message: str, language: str, context: str = "") -> str
         if not ollama_is_available():
             raise AIServiceError(
                 f"Private local AI is not running or model {settings.ollama_model} is not installed. "
-                f"Install Ollama, run `ollama pull {settings.ollama_model}`, then restart the backend."
+                f"Install Ollama, run ollama pull {settings.ollama_model}, then restart the backend."
             )
         try:
             response = httpx.post(
@@ -131,7 +139,6 @@ async def answer_message(message: str) -> tuple[str, str, str]:
         except SearchUnavailableError as exc:
             return str(exc), language, "search_unavailable"
         except Exception:
-            # Search service errors are intentionally converted to a helpful response.
             return ("Web search failed. Please check your connection or search API key and try again." if language == "en" else "Web search nahi ho saka. Internet ya search API key check karke dobara koshish karein."), language, "search_error"
         if not results:
             return "I couldn't find any useful results for that search.", language, "search"
