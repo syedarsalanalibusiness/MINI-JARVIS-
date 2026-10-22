@@ -1,4 +1,4 @@
-"""FastAPI application for AI Voice Assistant — Mini JARVIS."""
+"""FastAPI application for the Mini JARVIS text assistant."""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +21,7 @@ app.include_router(search.router)
 
 @app.get("/", tags=["status"])
 async def root() -> dict[str, str]:
-    return {"name": "AI Voice Assistant — Mini JARVIS", "status": "online", "docs": "/docs"}
+    return {"name": "AI Text Assistant — Mini JARVIS", "status": "online", "docs": "/docs"}
 
 
 @app.get("/health", response_model=HealthResponse, tags=["status"])
