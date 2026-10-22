@@ -82,7 +82,7 @@ def handle_local_command(message: str, language: str) -> tuple[str, str] | None:
     roman_urdu_greetings = {
         "salam", "assalamualaikum", "assalam o alaikum", "assalamu alaikum",
         "kya haal hai", "kaise ho", "kaisay ho", "kese ho", "kaisa ho",
-        "aur batao kaisa ho", "aur batao kaise ho", "aur batao kaisay ho",
+        "aur batao kaisa ho", "aur batao kaise ho", "aur batao kaisay ho", "aur btao kaisa ho", "aur btao kaisay ho", "aur batoa kaisa ho", "aur batoa kasai ho", "aur batao kasai ho", "aur batao kaisy ho",
         "chal raha hai ai ke paas", "chal raha hai ai ka pass",
     }
     if normalized in english_greetings:
