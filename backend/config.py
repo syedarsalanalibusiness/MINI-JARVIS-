@@ -13,7 +13,7 @@ ENV_FILE = PROJECT_ROOT / ".env"
 class Settings(BaseSettings):
     ai_provider: str = "murakumo"
     murakumo_base_url: str = "https://api.murakumo.cloud/v1"
-    murakumo_model: str = "mishima"
+    murakumo_model: str = "murakumo/free"
     openai_api_key: SecretStr = SecretStr("")
     openai_model: str = "gpt-5.6-luna"
     ollama_base_url: str = "http://127.0.0.1:11434"
@@ -47,7 +47,7 @@ def search_key_is_configured() -> bool:
 
 
 def get_search_api_key() -> str:
-    """Return the search key for server-side requests only."""
+    """Return the key for server-side requests only."""
     return get_settings().search_api_key.get_secret_value().strip()
 
 
