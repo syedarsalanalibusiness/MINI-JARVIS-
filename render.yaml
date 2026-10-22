@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mini-jarvis-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: AI_PROVIDER
+        value: murakumo
+      - key: MURAKUMO_BASE_URL
+        value: https://api.murakumo.cloud/v1
+      - key: MURAKUMO_MODEL
+        value: mishima
+      - key: BACKEND_API_TOKEN
+        sync: false
