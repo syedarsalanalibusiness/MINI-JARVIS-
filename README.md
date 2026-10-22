@@ -32,7 +32,7 @@ The frontend never receives the AI provider key. In cloud deployment, Streamlit 
 ## Project structure
 
 ```text
-ai_voice_assistant/
+MINI-JARVIS-/
 ├── backend/
 │   ├── main.py                 # FastAPI app and health endpoint
 │   ├── config.py               # Project-root environment settings
