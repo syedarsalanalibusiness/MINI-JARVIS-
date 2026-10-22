@@ -69,6 +69,8 @@ def _calculation_expression(message: str) -> str | None:
 def handle_local_command(message: str, language: str) -> tuple[str, str] | None:
     """Handle exact safe command categories; return (reply, intent), or None."""
     text = message.lower().strip()
+    normalized = re.sub(r"[!?.,،۔]+", " ", text)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
     if any(term in text for term in ("help", "what can you do", "your commands", "madad")):
         reply = (
             "I can answer questions, tell you the date and time, solve basic arithmetic, and search the web when configured."
@@ -76,8 +78,19 @@ def handle_local_command(message: str, language: str) -> tuple[str, str] | None:
             else "Main sawalon ke jawab, tareekh aur waqt, basic hisaab, aur key configure hone par web search kar sakta hoon."
         )
         return reply, "help"
-    if any(term in text for term in ("hello", "hi jarvis", "hey jarvis", "assalam")) and len(text) < 100:
-        return ("Wa alaikum assalam! How can I help you?" if language == "ur" else "Hello! How can I help you?"), "greeting"
+    english_greetings = {"hi", "hey", "hello", "hi jarvis", "hey jarvis", "hello jarvis"}
+    roman_urdu_greetings = {
+        "salam", "assalamualaikum", "assalam o alaikum", "assalamu alaikum",
+        "kya haal hai", "kaise ho", "kaisay ho", "kese ho", "kaisa ho",
+        "aur batao kaisa ho", "aur batao kaise ho", "aur batao kaisay ho",
+        "chal raha hai ai ke paas", "chal raha hai ai ka pass",
+    }
+    if normalized in english_greetings:
+        return "Hello! How can I help you?", "greeting"
+    if normalized in roman_urdu_greetings:
+        return "Main yahin hoon, shukriya! Aapko kis cheez mein madad chahiye?", "greeting"
+    if "assalam" in normalized and len(normalized) < 100:
+        return "Wa alaikum assalam! Aapko kis cheez mein madad chahiye?", "greeting"
     if any(term in text for term in ("time", "waqt")):
         now = datetime.now().astimezone().strftime("%I:%M %p")
         return (f"Abhi waqt {now} hai." if language == "ur" else f"The current time is {now}."), "time"
