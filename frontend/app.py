@@ -1,4 +1,4 @@
-"""Text-only Streamlit frontend for AI Voice Assistant — Mini JARVIS."""
+"""Text-only Streamlit frontend for Mini JARVIS."""
 
 import os
 from pathlib import Path
