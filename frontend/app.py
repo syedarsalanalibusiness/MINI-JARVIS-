@@ -30,7 +30,8 @@ API_TOKEN = (
     or ""
 ).strip()
 API_HEADERS = {"Authorization": f"Bearer {API_TOKEN}"} if API_TOKEN else {}
-REQUEST_TIMEOUT = 190
+# Murakumo's free model can take up to 360 seconds to cold-start.
+REQUEST_TIMEOUT = 450
 
 st.markdown("""
 <style>
@@ -54,7 +55,7 @@ try:
     health = health_response.json()
     backend_state = "Online"
     ai_provider = health.get("ai_provider", "AI")
-    ai_state = f"{ai_provider.title()} ready" if health.get("ai_available") else f"{ai_provider.title()} unavailable"
+    ai_state = f"{ai_provider.title()} model listed" if health.get("ai_available") else f"{ai_provider.title()} unavailable"
     search_state = "Available" if health.get("search_available") else "Optional key missing"
 except requests.RequestException:
     health = None
@@ -85,6 +86,7 @@ if health and not health.get("ai_available"):
         st.warning("AI is not configured. Check the backend's AI_PROVIDER and server configuration.")
 if health and health.get("ai_provider") == "murakumo":
     st.info("Online mode: your questions and webpage text are sent to a third-party AI service. Do not submit passwords or private information.")
+    st.caption("The free hosted model may take a few minutes to wake before its first answer.")
 if not health:
     st.error("Cannot reach the backend. Start the FastAPI service and check BACKEND_URL.")
 
@@ -119,6 +121,12 @@ if message:
                         st.session_state.history.append({"role": "assistant", "content": reply})
                 except requests.Timeout:
                     st.error("JARVIS took too long to respond. Please try again.")
+                except requests.HTTPError as exc:
+                    try:
+                        detail = exc.response.json().get("detail") if exc.response is not None else None
+                    except (ValueError, TypeError):
+                        detail = None
+                    st.error(detail or "JARVIS could not complete that request. Please try again.")
                 except requests.RequestException:
                     st.error("JARVIS could not reach the AI service. Check the backend and try again.")
 
