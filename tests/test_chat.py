@@ -16,6 +16,8 @@ def test_local_date_command_needs_no_api_key():
 
 
 def test_deployment_token_protects_chat_but_not_health(monkeypatch):
+    from pydantic import SecretStr
+
     settings = get_settings()
     monkeypatch.setattr(settings, "backend_api_token", SecretStr("test-deployment-token"))
     assert client.get("/health").status_code == 200
@@ -60,7 +62,6 @@ def test_ai_unconfigured_returns_friendly_error(monkeypatch):
 
 
 def test_ai_sdk_errors_become_friendly_errors(monkeypatch):
-    import asyncio
     from openai import APIConnectionError
 
     def broken_client():
@@ -69,6 +70,8 @@ def test_ai_sdk_errors_become_friendly_errors(monkeypatch):
     monkeypatch.setattr(ai_service, "_client", broken_client)
     monkeypatch.setattr(get_settings(), "ai_provider", "openai")
     try:
+        import asyncio
+
         asyncio.run(ai_service._answer_with_ai("hello", "en"))
     except ai_service.AIServiceError as exc:
         assert "internet connection" in str(exc)
@@ -132,7 +135,7 @@ def test_murakumo_busy_response_is_user_friendly(monkeypatch):
     monkeypatch.setattr(ai_service.asyncio, "sleep", no_wait)
     with pytest.raises(ai_service.AIServiceError, match="starting or busy"):
         asyncio.run(ai_service._answer_with_ai("Explain AI", "en"))
-    assert len(attempts) == 3
+    assert len(attempts) == 4
     assert all(timeout <= 420 for timeout in attempts)
 
 
@@ -160,8 +163,34 @@ def test_murakumo_retries_temporary_503_then_answers(monkeypatch):
     assert len(attempts) == 2
 
 
+def test_murakumo_uses_mishima_responses_fallback_after_retries(monkeypatch):
+    import asyncio
+    import httpx
+
+    monkeypatch.setattr(get_settings(), "ai_provider", "murakumo")
+    monkeypatch.setattr(ai_service, "murakumo_is_available", lambda: True)
+    urls = []
+
+    async def no_wait(_seconds):
+        return None
+
+    def fallback_response(*args, **kwargs):
+        urls.append(args[0])
+        if args[0].endswith("/chat/completions"):
+            return httpx.Response(503, request=httpx.Request("POST", args[0]), text="busy")
+        return httpx.Response(200, request=httpx.Request("POST", args[0]), json={"output_text": "Mishima is answering."})
+
+    monkeypatch.setattr(httpx, "post", fallback_response)
+    monkeypatch.setattr(ai_service.asyncio, "sleep", no_wait)
+    reply = asyncio.run(ai_service._answer_with_ai("Explain AI", "en"))
+    assert reply == "Mishima is answering."
+    assert len([url for url in urls if url.endswith("/chat/completions")]) == 3
+    assert urls[-1].endswith("/responses")
+
+
 def test_url_extraction_and_private_link_block():
     import pytest
+
     from backend.services.webpage_service import PageFetchError, _validate_public_url, find_url
 
     assert find_url("Please review https://example.com/sale?id=2.") == "https://example.com/sale?id=2"
