@@ -137,32 +137,13 @@ If `BACKEND_API_TOKEN` is configured, include `Authorization: Bearer <token>` fo
 
 ## Deploy publicly: Streamlit Community Cloud + Render
 
-The project source is published at https://github.com/syedarsalanalibusiness/MINI-JARVIS-. Hosting is not yet verified: deploy the FastAPI service from this repository on Render and the Streamlit app from frontend/app.py on Streamlit Community Cloud. Add BACKEND_API_TOKEN as a private Render environment variable and set the same value, plus BACKEND_URL, in Streamlit app secrets.
+The project folder must be pushed to a GitHub repository that your hosting accounts can access. No Git repository or remote is currently configured in this workspace, so deployment cannot start until you connect/push the project to your repository. Keep the repository private if desired; both hosts need access.
 
-### 1. Push the project folder to GitHub
-
-Create an empty repository, then run these commands from this project folder (replace the remote URL with your own):
-
-```powershell
-git init
-git add .
-git status
-```
-
-Confirm `.env` is not in the staged file list, then:
-
-```powershell
-git commit -m "Prepare text-only Mini JARVIS deployment"
-git branch -M main
-git remote add origin https://github.com/YOUR-ACCOUNT/YOUR-REPOSITORY.git
-git push -u origin main
-```
-
-### 2. Deploy FastAPI to Render
+### 1. Deploy FastAPI to Render
 
 In Render, create a Blueprint from the GitHub repository and use the included `render.yaml`. During setup, set a private `BACKEND_API_TOKEN` value. Do not put it in the repository. Render builds and starts FastAPI and provides an `onrender.com` URL; verify its `/health` endpoint reports `ai_available: true`.
 
-### 3. Deploy Streamlit
+### 2. Deploy Streamlit
 
 In Streamlit Community Cloud, create an app from the same repository and set the app file to `frontend/app.py`. In its Secrets settings, provide:
 
