@@ -196,3 +196,10 @@ def test_url_extraction_and_private_link_block():
     assert find_url("Please review https://example.com/sale?id=2.") == "https://example.com/sale?id=2"
     with pytest.raises(PageFetchError, match="public websites"):
         _validate_public_url("http://127.0.0.1/private")
+
+
+
+def test_common_english_and_roman_urdu_smalltalk_needs_no_hosted_ai():
+    assert command_service.handle_local_command("How are you?", "en")[1] == "greeting"
+    assert command_service.handle_local_command("Aur sunao", "ur")[1] == "greeting"
+    assert command_service.detect_language("Aur sunao") == "ur"
