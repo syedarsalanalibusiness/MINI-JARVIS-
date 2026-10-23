@@ -10,6 +10,8 @@ def detect_language(message: str) -> str:
     """Return Urdu for Urdu script or common Roman Urdu phrases, else English."""
     if re.search(r"[\u0600-\u06ff]", message):
         return "ur"
+    if "urdu" in message.lower():
+        return "ur"
     roman_urdu = (
         "assalam", "ke bare", "batao", "kya", "hai", "kar do", "samjhao", "waqt",
         "aur sunao", "sunao", "kaise ho", "kaisay ho", "kese ho",
