@@ -13,7 +13,7 @@ ENV_FILE = PROJECT_ROOT / ".env"
 class Settings(BaseSettings):
     ai_provider: str = "murakumo"
     murakumo_base_url: str = "https://api.murakumo.cloud/v1"
-    murakumo_model: str = "murakumo/free"
+    murakumo_model: str = "mishima"
     openai_api_key: SecretStr = SecretStr("")
     openai_model: str = "gpt-5.6-luna"
     ollama_base_url: str = "http://127.0.0.1:11434"
