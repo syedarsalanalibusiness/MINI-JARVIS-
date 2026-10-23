@@ -30,7 +30,6 @@ API_TOKEN = (
     or ""
 ).strip()
 API_HEADERS = {"Authorization": f"Bearer {API_TOKEN}"} if API_TOKEN else {}
-# Murakumo's free model can take up to 360 seconds to cold-start.
 REQUEST_TIMEOUT = 450
 
 st.markdown("""
@@ -114,20 +113,28 @@ if message:
                     )
                     if response.status_code == 401:
                         st.error("The frontend and backend access tokens do not match. Check the deployment secrets.")
+                    elif response.status_code == 503:
+                        try:
+                            detail = response.json().get("detail")
+                        except (ValueError, TypeError):
+                            detail = None
+                        st.error(
+                            detail
+                            or "The backend is online, but its AI provider is temporarily unavailable. Please retry shortly."
+                        )
+                    elif response.status_code >= 400:
+                        try:
+                            detail = response.json().get("detail")
+                        except (ValueError, TypeError):
+                            detail = None
+                        st.error(detail or "JARVIS could not complete that request. Please try again.")
                     else:
-                        response.raise_for_status()
                         reply = response.json()["reply"]
                         st.markdown(reply)
                         st.session_state.history.append({"role": "assistant", "content": reply})
                 except requests.Timeout:
                     st.error("JARVIS took too long to respond. Please try again.")
-                except requests.HTTPError as exc:
-                    try:
-                        detail = exc.response.json().get("detail") if exc.response is not None else None
-                    except (ValueError, TypeError):
-                        detail = None
-                    st.error(detail or "JARVIS could not complete that request. Please try again.")
                 except requests.RequestException:
-                    st.error("JARVIS could not reach the AI service. Check the backend and try again.")
+                    st.error("JARVIS could not connect to the configured backend. Check that the backend URL is correct and the service is online.")
 
 st.caption("Conversation history is kept in this browser session only.")
