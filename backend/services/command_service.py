@@ -10,7 +10,10 @@ def detect_language(message: str) -> str:
     """Return Urdu for Urdu script or common Roman Urdu phrases, else English."""
     if re.search(r"[\u0600-\u06ff]", message):
         return "ur"
-    roman_urdu = ("assalam", "ke bare", "batao", "kya", "hai", "kar do", "samjhao", "waqt")
+    roman_urdu = (
+        "assalam", "ke bare", "batao", "kya", "hai", "kar do", "samjhao", "waqt",
+        "aur sunao", "sunao", "kaise ho", "kaisay ho", "kese ho",
+    )
     lowered = message.lower()
     return "ur" if any(term in lowered for term in roman_urdu) else "en"
 
@@ -78,11 +81,17 @@ def handle_local_command(message: str, language: str) -> tuple[str, str] | None:
             else "Main sawalon ke jawab, tareekh aur waqt, basic hisaab, aur key configure hone par web search kar sakta hoon."
         )
         return reply, "help"
-    english_greetings = {"hi", "hey", "hello", "hi jarvis", "hey jarvis", "hello jarvis"}
+    english_greetings = {
+        "hi", "hey", "hello", "hi jarvis", "hey jarvis", "hello jarvis",
+        "how are you", "how are you jarvis", "what's up", "whats up",
+    }
     roman_urdu_greetings = {
         "salam", "assalamualaikum", "assalam o alaikum", "assalamu alaikum",
+        "aur sunao", "aur sunao jarvis", "sunao", "aur batao", "aur btao", "aur batoa",
         "kya haal hai", "kaise ho", "kaisay ho", "kese ho", "kaisa ho",
-        "aur batao kaisa ho", "aur batao kaise ho", "aur batao kaisay ho", "aur btao kaisa ho", "aur btao kaisay ho", "aur batoa kaisa ho", "aur batoa kasai ho", "aur batao kasai ho", "aur batao kaisy ho",
+        "aur batao kaisa ho", "aur batao kaise ho", "aur batao kaisay ho",
+        "aur btao kaisa ho", "aur btao kaisay ho", "aur batoa kaisa ho",
+        "aur batoa kasai ho", "aur batao kasai ho", "aur batao kaisy ho",
         "chal raha hai ai ke paas", "chal raha hai ai ka pass",
     }
     if normalized in english_greetings:
